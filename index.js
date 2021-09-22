@@ -54,7 +54,7 @@ initNode()
 app.post('/register', async (req, res) => {
 
   console.log("Registration ----------------------------")
-
+  console.log(req.body)
   console.log("Email:- " + req.body.user_email)
   console.log("Public Key:- " + req.body.public_key)
 
@@ -105,13 +105,13 @@ app.post('/register', async (req, res) => {
   console.log(fees_status.decodedResult)
 
   let otp_original = crypto.randomBytes(4).toString("hex");
-  let created_otp = get_sha256_in_bytes(get_sha256("jeevanjotsingh@yandex.com").toUpperCase() + otp_original + this.public_key)
+  let created_otp = get_sha256_in_bytes(get_sha256(req.body.user_email).toUpperCase() + otp_original + req.body.public_key)
   console.log("Otp created in bytes: " + created_otp)
 
   // Register account ...
   console.log("Account registration with:-")
   console.log("Otp original:- " + otp_original)
-  console.log("Otp plain:- " + get_sha256(get_sha256("jeevanjotsingh@yandex.com").toUpperCase() + otp_original + this.public_key))
+  console.log("Otp plain:- " + get_sha256(get_sha256(req.body.user_email).toUpperCase() + otp_original + req.body.public_key))
 
   var register_account = null
   try {
@@ -159,7 +159,7 @@ app.post('/register', async (req, res) => {
   if(register_account.decodedResult == true) {
     try {
       console.log("Set Registration fee to false, answer: ")
-      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email))
+      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email), { gasPrice: 2500000000 })
       console.log(fees_paid.decodedResult)
     } catch (e) {
       console.log(e)
