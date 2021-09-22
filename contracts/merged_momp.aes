@@ -204,6 +204,12 @@ payable main contract Momp =
         else
             false
 
+    public entrypoint isEditedVerifiedEmail(email_to : bytes(32)) : bool =
+        if(Map.lookup_default(Map.lookup_default(email_to, state.edited_email_to_otp, #000000000000000000000000000000000000000000000000000000000000000), state.new_otp_verified, false) == true)
+            true
+        else
+            false
+
     stateful entrypoint claim_refund(payment_id: string) : string =
         require(state.payment_id_expiry[payment_id][Call.caller] < Chain.timestamp, "Transaction not expired yet!")
         let get_receiver = state.payment_id_to_receiver[payment_id]
@@ -232,6 +238,9 @@ payable main contract Momp =
     
     public entrypoint clients_pub_key(email: bytes(32)): address =
         state.email_to_public_addresses[email]
+
+    public entrypoint clients_new_pub_key(email: bytes(32)): address =
+        state.edited_email_to_public_addresses[email]
     
     stateful entrypoint clients_withdraw(email_address: bytes(32)) : int =
         require(isVerifiedEmail(email_address), "023: Email not verified!")
