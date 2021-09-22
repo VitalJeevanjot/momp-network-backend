@@ -57,18 +57,6 @@ app.post('/register', async (req, res) => {
 
   console.log("Email:- " + req.body.user_email)
   console.log("Public Key:- " + req.body.public_key)
-  var fees_status = null
-  try {
-    console.log("Checking fee status.")
-    fees_status = await momp_contract.methods.get_registration_fee_paid_or_not(get_sha256_in_bytes(req.body.user_email))
-  } catch (e) {
-    console.log (e)
-    res.send("r0009: Contract call failed")
-    return
-  }
-  
-  console.log("Fee paid by " + req.body.user_email + " : ")
-  console.log(fees_status.decodedResult)
 
 
   function get_sha256 (val) {
@@ -95,6 +83,21 @@ app.post('/register', async (req, res) => {
     // console.log("Hased data in Bytes(32) : " + _hashed_data_in_bytes)
     return _hashed_data_in_bytes
   }
+
+
+
+  var fees_status = null
+  try {
+    console.log("Checking fee status.")
+    fees_status = await momp_contract.methods.get_registration_fee_paid_or_not(get_sha256_in_bytes(req.body.user_email))
+  } catch (e) {
+    console.log (e)
+    res.send("r0009: Contract call failed")
+    return
+  }
+  
+  console.log("Fee paid by " + req.body.user_email + " : ")
+  console.log(fees_status.decodedResult)
 
   let otp_original = crypto.randomBytes(4).toString("hex");
   let created_otp = get_sha256_in_bytes(get_sha256("jeevanjotsingh@yandex.com").toUpperCase() + otp_original + this.public_key)
@@ -146,6 +149,13 @@ app.post('/register', async (req, res) => {
     result = "error: Wrong values!"
   }
   console.log("---------------------------- Registration")
+  try {
+    console.log("Set Registration fee to false, asnwer: ")
+    let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email))
+    console.log(fees_paid.decodedResult)
+  } catch (e) {
+    console.log(e)
+  }
   res.send(result)
 })
 
