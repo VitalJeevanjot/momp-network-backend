@@ -92,7 +92,8 @@ app.post('/register', async (req, res) => {
     console.log("Checking fee status.")
     fees_status = await momp_contract.methods.get_registration_fee_paid_or_not(get_sha256_in_bytes(req.body.user_email))
     if (fees_status.decodedResult == false) {
-      res.send("r0008: Registeration fee not paid!")
+      console.log("Fees not paid!")
+      res.send("r0008: Registration fee not paid!")
       return
     }
   } catch (e) {
