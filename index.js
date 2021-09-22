@@ -63,10 +63,11 @@ app.post('/register', async (req, res) => {
     return crypto.createHash('sha256').update(val).digest('hex')
   }
   function get_sha256_in_bytes (data, upper) {
+    var hash = null
     if (upper) {
-      var hash = crypto.createHash('sha256').update(data).digest('hex').toUpperCase();
+      hash = crypto.createHash('sha256').update(data).digest('hex').toUpperCase();
     } else {
-      var hash = crypto.createHash('sha256').update(data).digest('hex');
+      hash = crypto.createHash('sha256').update(data).digest('hex');
     }
     // console.log("Hashed data: " + hash)
 
@@ -90,6 +91,10 @@ app.post('/register', async (req, res) => {
   try {
     console.log("Checking fee status.")
     fees_status = await momp_contract.methods.get_registration_fee_paid_or_not(get_sha256_in_bytes(req.body.user_email))
+    if (fees_status.decodedResult == false) {
+      res.send("r0008: Registeration fee not paid!")
+      return
+    }
   } catch (e) {
     console.log (e)
     res.send("r0009: Contract call failed")
@@ -105,12 +110,13 @@ app.post('/register', async (req, res) => {
 
   // Register account ...
   console.log("Account registration with:-")
-  console.log("Otp original:- " + created_otp)
-  console.log("Otp plain:- " + created_otp)
-  
+  console.log("Otp original:- " + otp_original)
+  console.log("Otp plain:- " + get_sha256(get_sha256("jeevanjotsingh@yandex.com").toUpperCase() + otp_original + this.public_key))
+
+  var register_account = null
   try {
     console.log("Registering account.")
-    var register_account = await momp_contract.methods.add_email(get_sha256_in_bytes(req.body.user_email), req.body.public_key, created_otp)
+    register_account = await momp_contract.methods.add_email(get_sha256_in_bytes(req.body.user_email), req.body.public_key, created_otp)
     console.log(register_account.decodedResult)
   } catch (e) {
     console.log(e)
@@ -144,18 +150,24 @@ app.post('/register', async (req, res) => {
     console.log("Sending Email...")
     // result = "myResultByJeevanjot"
     result = await smtp.main({ _sender: args[0], _to: args[1], _subject: args[2] }, __public_key, otp_original)
+    console.log(result)
   } catch (e) {
     console.log(e)
     result = "error: Wrong values!"
   }
-  console.log("---------------------------- Registration")
-  try {
-    console.log("Set Registration fee to false, asnwer: ")
-    let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email))
-    console.log(fees_paid.decodedResult)
-  } catch (e) {
-    console.log(e)
+
+  if(register_account.decodedResult == true) {
+    try {
+      console.log("Set Registration fee to false, answer: ")
+      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email))
+      console.log(fees_paid.decodedResult)
+    } catch (e) {
+      console.log(e)
+    }
   }
+
+  console.log("---------------------------- Registration")
+  
   res.send(result)
 })
 
