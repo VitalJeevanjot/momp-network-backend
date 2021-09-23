@@ -58,6 +58,11 @@ app.post('/register', async (req, res) => {
   console.log("Email:- " + req.body.user_email)
   console.log("Public Key:- " + req.body.public_key)
 
+  if(!req.body.user_email || !req.body.public_key) {
+    res.send("Data not provided!")
+    return
+  }
+
 
   function get_sha256 (val) {
     return crypto.createHash('sha256').update(val).digest('hex')
