@@ -53,10 +53,10 @@ initNode()
 
 app.post('/register', async (req, res) => {
 
-  console.log("Registration ----------------------------")
-  console.log(req.body)
-  console.log("Email:- " + req.body.user_email)
-  console.log("Public Key:- " + req.body.public_key)
+  console.trace("Registration ----------------------------")
+  console.trace(req.body)
+  console.trace("Email:- " + req.body.user_email)
+  console.trace("Public Key:- " + req.body.public_key)
 
   if(!req.body.user_email || !req.body.public_key) {
     res.send("Data not provided!")
@@ -74,7 +74,7 @@ app.post('/register', async (req, res) => {
     } else {
       hash = crypto.createHash('sha256').update(data).digest('hex');
     }
-    // console.log("Hashed data: " + hash)
+    // console.trace("Hashed data: " + hash)
 
     _hashed_data_in_bytes = []
     for (let index = 0; index < 64; index = index + 2) {
@@ -86,7 +86,7 @@ app.post('/register', async (req, res) => {
       const element2 = hash[index + 1].toString(16);
       _hashed_data_in_bytes.push("0x" + element + element2)
     }
-    // console.log("Hased data in Bytes(32) : " + _hashed_data_in_bytes)
+    // console.trace("Hased data in Bytes(32) : " + _hashed_data_in_bytes)
     return _hashed_data_in_bytes
   }
 
@@ -94,56 +94,56 @@ app.post('/register', async (req, res) => {
 
   var fees_status = null
   try {
-    console.log("Checking fee status.")
+    console.trace("Checking fee status.")
     fees_status = await momp_contract.methods.get_registration_fee_paid_or_not(get_sha256_in_bytes(req.body.user_email))
     if (fees_status.decodedResult == false) {
-      console.log("Fees not paid!")
+      console.trace("Fees not paid!")
       res.send("r0008: Registration fee not paid!")
       return
     }
   } catch (e) {
-    console.log (e)
+    console.trace (e)
     res.send("r0009: Contract call failed")
     return
   }
   
-  console.log("Fee paid by " + req.body.user_email + " : ")
-  console.log(fees_status.decodedResult)
+  console.trace("Fee paid by " + req.body.user_email + " : ")
+  console.trace(fees_status.decodedResult)
 
   let otp_original = crypto.randomBytes(4).toString("hex");
   let created_otp = get_sha256_in_bytes(get_sha256(req.body.user_email).toUpperCase() + otp_original + req.body.public_key)
-  console.log("Otp created in bytes: " + created_otp)
+  console.trace("Otp created in bytes: " + created_otp)
 
   // Register account ...
-  console.log("Account registration with:-")
-  console.log("Otp original:- " + otp_original)
-  console.log("Otp plain:- " + get_sha256(get_sha256(req.body.user_email).toUpperCase() + otp_original + req.body.public_key))
+  console.trace("Account registration with:-")
+  console.trace("Otp original:- " + otp_original)
+  console.trace("Otp plain:- " + get_sha256(get_sha256(req.body.user_email).toUpperCase() + otp_original + req.body.public_key))
 
   var register_account = null
   try {
-    console.log("Registering account.")
-    register_account = await momp_contract.methods.add_email(get_sha256_in_bytes(req.body.user_email), req.body.public_key, created_otp)
-    console.log(register_account.decodedResult)
+    console.trace("Registering account.")
+    register_account = await momp_contract.methods.add_email(get_sha256_in_bytes(req.body.user_email), req.body.public_key, created_otp, { gasPrice: 7500000000 })
+    console.trace(register_account.decodedResult)
   } catch (e) {
-    console.log(e)
+    console.trace(e)
     res.send("w0001: Error in register transaction")
     return
   }
 
   var __public_key = req.body.public_key
   // try {
-  //   console.log("Getting client public key.")
+  //   console.trace("Getting client public key.")
 
   //   try {
-  //     console.log("Getting client public key from new state.")
+  //     console.trace("Getting client public key from new state.")
   //     __public_key = await momp_contract.methods.clients_new_pub_key(get_sha256_in_bytes(req.body.user_email))
   //   } catch (e) {
-  //     console.log("Getting client public key from stable state.")
-  //     console.log(e)
+  //     console.trace("Getting client public key from stable state.")
+  //     console.trace(e)
   //     __public_key = await momp_contract.methods.clients_pub_key(get_sha256_in_bytes(req.body.user_email))
   //   }
   // } catch (e) {
-  //   console.log (e)
+  //   console.trace (e)
   //   res.send("r0010: Contract call failed")
   //   return
   // }
@@ -153,30 +153,30 @@ app.post('/register', async (req, res) => {
     "About added, your original OTP"
   ]
   try {
-    console.log("Sending Email...")
+    console.trace("Sending Email...")
     // result = "myResultByJeevanjot"
     result = await smtp.main({ _sender: args[0], _to: args[1], _subject: args[2] }, __public_key, otp_original)
-    console.log(result)
+    console.trace(result)
   } catch (e) {
-    console.log(e)
+    console.trace(e)
     result = "error: Wrong values!"
   }
 
   if(register_account.decodedResult == true) {
     try {
-      console.log("Set Registration fee to false, answer: ")
-      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email), { gasPrice: 2500000000 })
-      console.log(fees_paid.decodedResult)
+      console.trace("Set Registration fee to false, answer: ")
+      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email), { gasPrice: 7500000000 })
+      console.trace(fees_paid.decodedResult)
     } catch (e) {
-      console.log(e)
+      console.trace(e)
     }
   }
 
-  console.log("---------------------------- Registration")
+  console.trace("---------------------------- Registration")
   
   res.send(result)
 })
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+  console.trace(`Example app listening at http://localhost:${port}`)
 })
