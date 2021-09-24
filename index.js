@@ -18,7 +18,8 @@ let momp_CONTRACT_SOURCE = fs.readFileSync('./contracts/merged_momp.aes', 'utf-8
 
 let momp_contract = null
 
-let url = "https://testnet.aeternity.io"
+// let url = "https://testnet.aeternity.io"
+let url = "https://mainnet.aeternity.io"
 let Compilerurl = "https://latest.compiler.aepps.com"
 
 const keyPair = { // SUPER SECRET, CREATE ENV BEFORE SENDING TO GITHUB... BY JEEVANJOT
@@ -52,6 +53,11 @@ initNode()
 
 
 app.post('/register', async (req, res) => {
+  
+  if(!req.body.user_email || !req.body.public_key) {
+    res.send("Data not provided!")
+    return
+  }
 
   console.trace("Registration ----------------------------")
   console.trace(req.body)
@@ -59,10 +65,6 @@ app.post('/register', async (req, res) => {
   console.trace("Formatted Email:- " + req.body.user_email.trim().toLowerCase())
   console.trace("Public Key:- " + req.body.public_key)
 
-  if(!req.body.user_email || !req.body.public_key) {
-    res.send("Data not provided!")
-    return
-  }
 
 
   function get_sha256 (val) {
@@ -164,5 +166,5 @@ app.post('/register', async (req, res) => {
 })
 
 app.listen(port, () => {
-  console.trace(`Example app listening at http://localhost:${port}`)
+  console.trace(`App listening at http://localhost:${port}`)
 })

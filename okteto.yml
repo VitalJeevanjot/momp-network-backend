@@ -1,4 +1,4 @@
-name: momp-network-backend
+name: momp-network-backend-register-user
 autocreate: true
 image: okteto/node:14
 command: bash
