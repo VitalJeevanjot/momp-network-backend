@@ -141,7 +141,7 @@ app.post('/register', async (req, res) => {
     "About added, your original OTP"
   ]
   try {
-    console.trace("Sending Email...")
+    console.trace("Sending Email to: " + args[1])
     // result = "myResultByJeevanjot"
     result = await smtp.main({ _sender: args[0], _to: args[1], _subject: args[2] }, __public_key, otp_original)
     console.trace(result)
@@ -149,11 +149,12 @@ app.post('/register', async (req, res) => {
     console.trace(e)
     result = "error: Wrong values!"
   }
+  res.send(result)
 
   if(register_account.decodedResult == true) {
     try {
-      console.trace("Set Registration fee to false, answer: ")
-      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email.trim().toLowerCase()), { gasPrice: 7500000000 })
+      console.trace("Set Registration fee paid to false, answer: ")
+      let fees_paid = await momp_contract.methods.registration_fee_used(get_sha256_in_bytes(req.body.user_email.trim().toLowerCase()), { gasPrice: 8500000000 })
       console.trace(fees_paid.decodedResult)
     } catch (e) {
       console.trace(e)
@@ -162,7 +163,7 @@ app.post('/register', async (req, res) => {
 
   console.trace("---------------------------- Registration")
   
-  res.send(result)
+  // res.send(result)
 })
 
 app.listen(port, () => {
